@@ -3,18 +3,14 @@ defmodule Geocalc.Supervisor do
 
   alias Geocalc.Calculator
 
-  def start_link() do
-    Supervisor.start_link(__MODULE__, :ok, name: __MODULE__)
+  def start_link(count) do
+    Supervisor.start_link(__MODULE__, count, name: __MODULE__)
   end
 
-  def init(:ok) do
+  def init(count) do
     import Supervisor.Spec
 
-    children = [
-      # Starts a worker by calling:
-      # Geocalc.Calculator.start_link()
-      worker(Calculator, []),
-    ]
+    children = Enum.map(1..count, fn (n) -> worker(Calculator, [], id: n) end)
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options

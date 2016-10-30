@@ -11,7 +11,7 @@ defmodule Geocalc do
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
-    Geocalc.Supervisor.start_link()
+    Geocalc.Supervisor.start_link(workers_count)
   end
 
   @doc """
@@ -211,9 +211,16 @@ defmodule Geocalc do
     GenServer.call(calc_pid, {:degrees_to_radians, degrees})
   end
 
+  defp workers_count do
+    Application.get_env(:geocalc, :workers_count) || 1
+  end
+
   defp calc_pid do
-    workers = Supervisor.which_children(Geocalc.Supervisor)
-    {Calculator, pid, :worker, _} = hd(workers)
+    num = :rand.uniform(workers_count)
+    {_id, pid, :worker, [Calculator]} =
+      Geocalc.Supervisor
+      |> Supervisor.which_children()
+      |> Enum.find(fn {id, _pid, _, _} -> id == num end)
     pid
   end
 end
